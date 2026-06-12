@@ -502,6 +502,7 @@ let dayLow = 999999;
 async function refreshMarketData() {
     try {
         const currencyResponse = await fetch(CURRENCY_API_URL);
+        if (!currencyResponse.ok) throw new Error('Currency API Error');
         const currencyData = await currencyResponse.json();
         const marketEgpRate = currencyData.rates.EGP;
         
@@ -514,7 +515,11 @@ async function refreshMarketData() {
                 'Content-Type': 'application/json'
             }
         });
+        
+        if (!goldResponse.ok) throw new Error('Gold API Limit Reached');
         const goldData = await goldResponse.json();
+
+        if (!goldData.price_gram_21k) throw new Error('Invalid Data format');
 
         const p24 = Math.round(goldData.price_gram_24k * marketEgpRate);
         const p21 = Math.round(goldData.price_gram_21k * marketEgpRate);
@@ -555,6 +560,10 @@ async function refreshMarketData() {
 
     } catch (error) {
         console.error(error);
+        document.getElementById('g-24').textContent = 'غير متاح';
+        document.getElementById('g-21').textContent = 'غير متاح';
+        document.getElementById('g-18').textContent = 'غير متاح';
+        document.getElementById('g-pound').textContent = 'غير متاح';
     }
 }
 
