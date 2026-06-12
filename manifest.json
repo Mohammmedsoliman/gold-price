@@ -1,7 +1,7 @@
 {
-  "name": "بتاع بورصة",
-  "short_name": "الذهب",
-  "start_url": "/",
+  "name": "بتاع دهب",
+  "short_name": "بتاع دهب",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
