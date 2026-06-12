@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>بتاع بورصة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #050505;
+    background-image: radial-gradient(circle at 50% 0%, #1a1814 0%, #050505 70%);
+    color: #E0E0E0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+.announcement-bar {
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(10px);
+    color: #D4AF37;
+    padding: 0.8rem 5%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    z-index: 10;
+}
+
+.live-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #D4AF37;
+    border-radius: 50%;
+    animation: flash 2s infinite;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+@keyframes flash {
+    0% { opacity: 1; box-shadow: 0 0 10px rgba(212, 175, 55, 0.8); }
+    50% { opacity: 0.3; box-shadow: 0 0 0px rgba(212, 175, 55, 0); }
+    100% { opacity: 1; box-shadow: 0 0 10px rgba(212, 175, 55, 0.8); }
+}
+
+navbar {
+    padding: 2rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.brand i {
+    color: #D4AF37;
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.2));
+}
+
+.brand h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.5px;
+}
+
+.exchange-rate-badge {
+    background: linear-gradient(145deg, #151515, #0a0a0a);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #D4AF37;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.dashboard {
+    max-width: 1500px;
+    width: 100%;
+    margin: 1rem auto 3rem;
+    padding: 0 5%;
+    display: grid;
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    gap: 2rem;
+    flex-grow: 1;
+}
+
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.price-card {
+    background: linear-gradient(145deg, #121212, #080808);
+    border-radius: 24px;
+    padding: 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.price-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.03) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.price-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(212, 175, 55, 0.3);
+    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.05), 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.price-card:hover::after {
+    opacity: 1;
+}
+
+.card-lead {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    z-index: 1;
+}
+
+.icon-box {
+    width: 55px;
+    height: 55px;
+    background: #050505;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #D4AF37;
+    font-size: 1.5rem;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: inset 0 2px 10px rgba(212, 175, 55, 0.05);
+}
+
+.card-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.karat-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #FFFFFF;
+}
+
+.karat-subtitle {
+    font-size: 0.85rem;
+    color: #888888;
+    margin-top: 4px;
+}
+
+.card-display {
+    text-align: left;
+    z-index: 1;
+}
+
+.val-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #D4AF37;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+.val-unit {
+    font-size: 0.9rem;
+    color: #666666;
+    font-weight: 600;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 0;
+}
+
+.chart-wrapper {
+    background: linear-gradient(145deg, #121212, #080808);
+    border-radius: 30px;
+    padding: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    height: 480px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.chart-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.chart-headline {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-headline i {
+    color: #D4AF37;
+    font-size: 1.1rem;
+}
+
+.market-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.metric-box {
+    background: rgba(15, 15, 15, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.metric-box:hover {
+    background: rgba(20, 20, 20, 0.8);
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+.metric-label {
+    font-size: 0.95rem;
+    color: #888888;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.metric-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #FFFFFF;
+}
+
+footer {
+    padding: 2rem 5%;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #555555;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 1024px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+    .side-panel {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    navbar {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .chart-wrapper {
+        height: 380px;
+        padding: 1.5rem;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="announcement-bar">
+    <div class="live-status">
+        <div class="pulse-dot"></div>
+        <span>اتصال مشفر ومباشر ببيانات الصرف العالمية</span>
+    </div>
+    <div id="live-clock">--:--:--</div>
+</div>
+
+<navbar>
+    <div class="brand">
+        <i class="fa-solid fa-crown"></i>
+        <h1>سعر الذهب في مصر</h1>
+    </div>
+    <div class="exchange-rate-badge" id="usd-egp-rate">جارِ جلب بيانات البنك...</div>
+</navbar>
+
+<div class="dashboard">
+    <div class="side-panel">
+        <div class="price-card">
+            <div class="card-lead">
+                <div class="icon-box"><i class="fa-solid fa-cubes-stacked"></i></div>
+                <div class="card-details">
+                    <span class="karat-title">عيار 24</span>
+                    <span class="karat-subtitle">السبائك النقية</span>
+                </div>
+            </div>
+            <div class="card-display">
+                <span class="val-num" id="g-24">----</span>
+                <span class="val-unit">ج.م</span>
+            </div>
+        </div>
+
+        <div class="price-card">
+            <div class="card-lead">
+                <div class="icon-box"><i class="fa-solid fa-ring"></i></div>
+                <div class="card-details">
+                    <span class="karat-title">عيار 21</span>
+                    <span class="karat-subtitle">المؤشر الرئيسي</span>
+                </div>
+            </div>
+            <div class="card-display">
+                <span class="val-num" id="g-21">----</span>
+                <span class="val-unit">ج.م</span>
+            </div>
+        </div>
+
+        <div class="price-card">
+            <div class="card-lead">
+                <div class="icon-box"><i class="fa-regular fa-gem"></i></div>
+                <div class="card-details">
+                    <span class="karat-title">عيار 18</span>
+                    <span class="karat-subtitle">المشغولات الدقيقة</span>
+                </div>
+            </div>
+            <div class="card-display">
+                <span class="val-num" id="g-18">----</span>
+                <span class="val-unit">ج.م</span>
+            </div>
+        </div>
+
+        <div class="price-card">
+            <div class="card-lead">
+                <div class="icon-box"><i class="fa-solid fa-coins"></i></div>
+                <div class="card-details">
+                    <span class="karat-title">الجنيه الذهب</span>
+                    <span class="karat-subtitle">٨ جرام عيار ٢١</span>
+                </div>
+            </div>
+            <div class="card-display">
+                <span class="val-num" id="g-pound">----</span>
+                <span class="val-unit">ج.م</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="chart-wrapper">
+            <div class="chart-meta">
+                <span class="chart-headline"><i class="fa-solid fa-chart-line"></i> الرسم البياني المباشر (ع 21)</span>
+            </div>
+            <div style="flex-grow:1; position:relative; width: 100%;">
+                <canvas id="liveTimeline"></canvas>
+            </div>
+        </div>
+
+        <div class="market-metrics">
+            <div class="metric-box">
+                <div class="metric-label">الأوقية بالشاشة العالمية</div>
+                <div class="metric-val" id="m-ounce" style="color: #D4AF37;">--- $</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">أعلى نقطة اليوم (ع21)</div>
+                <div class="metric-val" id="m-high">----</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">أقل نقطة اليوم (ع21)</div>
+                <div class="metric-val" id="m-low">----</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>البيانات تُحدث لحظياً بناءً على السعر العالمي وسعر الصرف الرسمي</p>
+</footer>
+
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+    });
+}
+
+const GOLD_API_KEY = 'goldapi-8cafaf982795294d42d13d5010f94450-io';
+const CURRENCY_API_URL = 'https://open.er-api.com/v6/latest/USD';
+const GOLD_API_URL = 'https://www.goldapi.io/api/XAU/USD';
+
+const canvasCtx = document.getElementById('liveTimeline').getContext('2d');
+let lineGradient = canvasCtx.createLinearGradient(0, 0, 0, 400);
+lineGradient.addColorStop(0, 'rgba(212, 175, 55, 0.4)');
+lineGradient.addColorStop(1, 'rgba(212, 175, 55, 0.0)');
+
+let timelineLabels = [];
+let timelineData = [];
+let isChartInitialized = false;
+
+Chart.defaults.color = '#666666';
+Chart.defaults.font.family = 'Cairo';
+
+const liveChart = new Chart(canvasCtx, {
+    type: 'line',
+    data: {
+        labels: timelineLabels,
+        datasets: [{
+            data: timelineData,
+            borderColor: '#D4AF37',
+            backgroundColor: lineGradient,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#050505',
+            pointBorderColor: '#D4AF37',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: '#D4AF37'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(10, 10, 10, 0.9)',
+                titleFont: { size: 13 },
+                bodyFont: { size: 14, weight: 'bold' },
+                padding: 15,
+                displayColors: false,
+                borderColor: 'rgba(212, 175, 55, 0.3)',
+                borderWidth: 1
+            }
+        },
+        scales: {
+            y: {
+                grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
+                ticks: { padding: 15 }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { padding: 10 }
+            }
+        }
+    }
+});
+
+let dayHigh = 0;
+let dayLow = 999999;
+
+async function refreshMarketData() {
+    try {
+        const currencyResponse = await fetch(CURRENCY_API_URL);
+        const currencyData = await currencyResponse.json();
+        const marketEgpRate = currencyData.rates.EGP;
+        
+        document.getElementById('usd-egp-rate').textContent = `الدولار البنكي: ${marketEgpRate.toFixed(2)} ج.م`;
+
+        const goldResponse = await fetch(GOLD_API_URL, {
+            method: 'GET',
+            headers: {
+                'x-access-token': GOLD_API_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+        const goldData = await goldResponse.json();
+
+        const p24 = Math.round(goldData.price_gram_24k * marketEgpRate);
+        const p21 = Math.round(goldData.price_gram_21k * marketEgpRate);
+        const p18 = Math.round(goldData.price_gram_18k * marketEgpRate);
+        const pPound = Math.round(p21 * 8);
+
+        document.getElementById('g-24').textContent = p24.toLocaleString('ar-EG');
+        document.getElementById('g-21').textContent = p21.toLocaleString('ar-EG');
+        document.getElementById('g-18').textContent = p18.toLocaleString('ar-EG');
+        document.getElementById('g-pound').textContent = pPound.toLocaleString('ar-EG');
+        document.getElementById('m-ounce').textContent = Math.round(goldData.price).toLocaleString('ar-EG') + ' $';
+
+        if (p21 > dayHigh) dayHigh = p21;
+        if (p21 < dayLow) dayLow = p21;
+
+        document.getElementById('m-high').textContent = dayHigh.toLocaleString('ar-EG');
+        document.getElementById('m-low').textContent = dayLow.toLocaleString('ar-EG');
+
+        const now = new Date();
+        const currentTimeString = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        
+        if (!isChartInitialized) {
+            const pastTime = new Date(now.getTime() - 60000);
+            timelineLabels.push(pastTime.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
+            timelineData.push(p21 - 2); 
+            isChartInitialized = true;
+        }
+
+        timelineLabels.push(currentTimeString);
+        timelineData.push(p21);
+
+        if (timelineLabels.length > 8) {
+            timelineLabels.shift();
+            timelineData.shift();
+        }
+
+        liveChart.update();
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function startClock() {
+    setInterval(() => {
+        document.getElementById('live-clock').textContent = new Date().toLocaleTimeString('ar-EG', { hour12: true });
+    }, 1000);
+}
+
+startClock();
+refreshMarketData();
+setInterval(refreshMarketData, 60000);
+</script>
+</body>
+</html>
